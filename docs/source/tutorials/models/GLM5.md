@@ -137,7 +137,7 @@ If you want to deploy multi-node environment, you need to set up environment on 
 
     Run the following script to execute online inference.
 
-    Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
+    Common Issues Tip: If you encounter issues, Refer to [Public FAQs](../../faqs.md).
 
     ```shell
     # The version of transformers needs to be upgraded to 5.2.0.
@@ -148,7 +148,6 @@ If you want to deploy multi-node environment, you need to set up environment on 
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
 
     vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w4a8 \
     --host 0.0.0.0 \
@@ -166,7 +165,7 @@ If you want to deploy multi-node environment, you need to set up environment on 
     --quantization ascend \
     --enable-chunked-prefill \
     --enable-prefix-caching \
-    --additional-config '{"multistream_overlap_shared_expert": true}' \
+    --additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true}}' \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
     --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
     ```
@@ -181,8 +180,6 @@ If you want to deploy multi-node environment, you need to set up environment on 
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
-    export VLLM_ASCEND_ENABLE_MLAPO=1
 
     vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
     --host 0.0.0.0 \
@@ -200,7 +197,7 @@ If you want to deploy multi-node environment, you need to set up environment on 
     --quantization ascend \
     --enable-chunked-prefill \
     --enable-prefix-caching \
-    --additional-config '{"multistream_overlap_shared_expert": true}' \
+    --additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true},"enable_mlapo":true}' \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
     --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
     ```
@@ -211,7 +208,7 @@ If you want to deploy multi-node environment, you need to set up environment on 
 
     Run the following script to execute online inference.
 
-    Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
+    Common Issues Tip: If you encounter issues, Refer to [Public FAQs](../../faqs.md).
 
     ```shell
     export HCCL_OP_EXPANSION_MODE="AIV"
@@ -219,7 +216,6 @@ If you want to deploy multi-node environment, you need to set up environment on 
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
 
     vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w4a8 \
     --host 0.0.0.0 \
@@ -238,7 +234,7 @@ If you want to deploy multi-node environment, you need to set up environment on 
     --enable-chunked-prefill \
     --enable-prefix-caching \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
-    --additional-config '{"multistream_overlap_shared_expert": true}' \
+    --additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true}}' \
     --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
     ```
 
@@ -258,21 +254,21 @@ Only the key parameters specific to this model/scenario are described below. `ma
 
 **Key environment variables:**
 
-- `VLLM_ASCEND_ENABLE_MLAPO=1`: Enables the MLA preprocess fusion operator (MlaPreprocessOperation). Enabled by default for w8a8 models — significantly improves Decode performance but consumes more NPU memory; set `VLLM_ASCEND_ENABLE_MLAPO=0` if memory is a priority. Recommended for w8a8; w4a8 may not benefit.
-- `VLLM_ASCEND_BALANCE_SCHEDULING=1`: Enables balance scheduling to improve output throughput and reduce TPOT in the v1 scheduler.
+- `additional_config.enable_mlapo=true`: Enables the MLA preprocess fusion operator (MlaPreprocessOperation). Enabled by default for w8a8 models — significantly improves Decode performance but consumes more NPU memory; set `additional_config.enable_mlapo=false` if memory is a priority. Recommended for w8a8; w4a8 may not benefit.
+- `additional_config.scheduler_config.enable_balance_scheduling=true`: Enables balance scheduling to improve output throughput and reduce TPOT in the v1 scheduler.
 
 **Performance tuning notes for single-node:**
 
 - For low-latency scenarios, use `dp1tp16` (data-parallel-size 1, tensor-parallel-size 16) and consider reducing `--max-num-seqs` and `--max-num-batched-tokens`.
 - For high-throughput scenarios, increase `--max-num-seqs` and enable `--enable-prefix-caching`.
 - For long-context scenarios (e.g., 200K), use w8a8 weight (more memory for KV cache) and set `--max-model-len` to the desired context length. Consider enabling `--enable-chunked-prefill`.
-- If you encounter OOM, reduce `--gpu-memory-utilization`, `--max-num-seqs`, or `--max-model-len`. Disabling `VLLM_ASCEND_ENABLE_MLAPO` can also reduce memory usage (at the cost of performance).
+- If you encounter OOM, reduce `--gpu-memory-utilization`, `--max-num-seqs`, or `--max-model-len`. Disabling `additional_config.enable_mlapo` can also reduce memory usage (at the cost of performance).
 
 ### 5.2 Multi-node Deployment
 
 If you want to deploy multi-node environment, you need to verify multi-node communication according to [verify multi-node communication environment](../../installation.md#verify-multi-node-communication).
 
-Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
+Common Issues Tip: If you encounter issues, Refer to [Public FAQs](../../faqs.md).
 
 === "A3 series"
 
@@ -299,10 +295,9 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     export OMP_PROC_BIND=false
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 
-    vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-bf16 \
+    vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-bf16 --additional-config '{"scheduler_config":{"enable_balance_scheduling":true}}' \
     --host 0.0.0.0 \
     --port 8077 \
     --data-parallel-size 2 \
@@ -341,10 +336,9 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     export OMP_PROC_BIND=false
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 
-    vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-bf16 \
+    vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-bf16 --additional-config '{"scheduler_config":{"enable_balance_scheduling":true}}' \
     --host 0.0.0.0 \
     --port 8077 \
     --headless \
@@ -389,7 +383,6 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     export OMP_PROC_BIND=false
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 
     vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w4a8 \
@@ -410,7 +403,7 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     --trust-remote-code \
     --gpu-memory-utilization 0.95 \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
-    --additional-config '{"multistream_overlap_shared_expert": true}' \
+    --additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true}}' \
     --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
     ```
 
@@ -433,7 +426,6 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     export OMP_PROC_BIND=false
     export OMP_NUM_THREADS=1
     export HCCL_BUFFSIZE=200
-    export VLLM_ASCEND_BALANCE_SCHEDULING=1
     export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 
     vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w4a8 \
@@ -456,7 +448,7 @@ Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
     --trust-remote-code \
     --gpu-memory-utilization 0.95 \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
-    --additional-config '{"multistream_overlap_shared_expert": true}' \
+    --additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true}}' \
     --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
     ```
 
@@ -543,8 +535,6 @@ export OMP_PROC_BIND=false
 export OMP_NUM_THREADS=1
 export HCCL_BUFFSIZE=200
 export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
-export VLLM_ASCEND_BALANCE_SCHEDULING=1
-export VLLM_ASCEND_ENABLE_MLAPO=1
 
 vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
 --host 0.0.0.0 \
@@ -566,7 +556,7 @@ vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
 --enable-chunked-prefill \
 --enable-prefix-caching \
 --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
---additional-config '{"multistream_overlap_shared_expert": true}' \
+--additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true},"enable_mlapo":true}' \
 --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
 ```
 
@@ -591,8 +581,6 @@ export OMP_PROC_BIND=false
 export OMP_NUM_THREADS=1
 export HCCL_BUFFSIZE=200
 export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
-export VLLM_ASCEND_BALANCE_SCHEDULING=1
-export VLLM_ASCEND_ENABLE_MLAPO=1
 
 vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
 --host 0.0.0.0 \
@@ -616,7 +604,7 @@ vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
 --enable-chunked-prefill \
 --enable-prefix-caching \
 --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}' \
---additional-config '{"multistream_overlap_shared_expert": true}' \
+--additional-config '{"multistream_overlap_shared_expert":true,"scheduler_config":{"enable_balance_scheduling":true},"enable_mlapo":true}' \
 --speculative-config '{"num_speculative_tokens": 3, "method": "deepseek_mtp", "enforce_eager": true}'
 ```
 
@@ -909,7 +897,6 @@ Before you start, please
         export VLLM_MOONCAKE_ABORT_REQUEST_TIMEOUT=480
         export TASK_QUEUE_ENABLE=1
         export ASCEND_RT_VISIBLE_DEVICES=$1
-        export VLLM_ASCEND_ENABLE_MLAPO=1
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
         vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
@@ -927,7 +914,7 @@ Before you start, please
             --max-model-len 200000 \
             --max-num-batched-tokens 32 \
             --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY"}' \
-            --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1}' \
+            --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1,"enable_mlapo":true}' \
             --trust-remote-code \
             --max-num-seqs 8 \
             --gpu-memory-utilization 0.92 \
@@ -977,7 +964,6 @@ Before you start, please
          export VLLM_MOONCAKE_ABORT_REQUEST_TIMEOUT=480
          export TASK_QUEUE_ENABLE=1
          export ASCEND_RT_VISIBLE_DEVICES=$1
-         export VLLM_ASCEND_ENABLE_MLAPO=1
          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
          vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
@@ -995,7 +981,7 @@ Before you start, please
              --max-model-len 200000 \
              --max-num-batched-tokens 32 \
              --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY"}' \
-             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1}' \
+             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1,"enable_mlapo":true}' \
              --trust-remote-code \
              --max-num-seqs 8 \
              --gpu-memory-utilization 0.92 \
@@ -1045,7 +1031,6 @@ Before you start, please
          export VLLM_MOONCAKE_ABORT_REQUEST_TIMEOUT=480
          export TASK_QUEUE_ENABLE=1
          export ASCEND_RT_VISIBLE_DEVICES=$1
-         export VLLM_ASCEND_ENABLE_MLAPO=1
          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
          vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
@@ -1063,7 +1048,7 @@ Before you start, please
              --max-model-len 200000 \
              --max-num-batched-tokens 32 \
              --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY"}' \
-             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1}' \
+             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1,"enable_mlapo":true}' \
              --trust-remote-code \
              --max-num-seqs 8 \
              --gpu-memory-utilization 0.92 \
@@ -1113,7 +1098,6 @@ Before you start, please
          export VLLM_MOONCAKE_ABORT_REQUEST_TIMEOUT=480
          export TASK_QUEUE_ENABLE=1
          export ASCEND_RT_VISIBLE_DEVICES=$1
-         export VLLM_ASCEND_ENABLE_MLAPO=1
          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
          vllm serve /root/.cache/modelscope/hub/models/vllm-ascend/GLM5-w8a8 \
@@ -1131,7 +1115,7 @@ Before you start, please
              --max-model-len 200000 \
              --max-num-batched-tokens 32 \
              --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY"}' \
-             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1}' \
+             --additional-config '{"recompute_scheduler_enable": true,"enable_fused_mc2":1,"enable_mlapo":true}' \
              --trust-remote-code \
              --max-num-seqs 8 \
              --gpu-memory-utilization 0.92 \
@@ -1261,7 +1245,7 @@ In addition to the single-node and multi-node parameters described above, the fo
 
 **Decode node-specific configurations:**
 
-- `VLLM_ASCEND_ENABLE_MLAPO=1`: Enables MLA preprocess operation fusion on decode nodes to significantly improve decode performance. Consumes more NPU memory. In PD scenarios, enable MLAPO only on decode nodes.
+- `additional_config.enable_mlapo=true`: Enables MLA preprocess operation fusion on decode nodes to significantly improve decode performance. Consumes more NPU memory. In PD scenarios, enable MLAPO only on decode nodes.
 - `--max-num-batched-tokens 32`: Small batch token limit on decode nodes — decode processes one token per sequence per step, so batch tokens should be close to `max-num-seqs`.
 - `--additional-config '{"recompute_scheduler_enable": true}'`: Enables the recomputation scheduler. When decode node KV cache is insufficient, requests are sent back to prefill nodes for KV cache recomputation. Recommended on both prefill and decode nodes in PD scenarios.
 
@@ -1369,7 +1353,7 @@ The tables below provide recommended parameter configurations for different depl
 |`--enable-chunked-prefill`|Enable|Enable|Enable|Splits long prompts into chunks to prevent prefill from blocking decode. Recommended in all scenarios.|
 |`--enable-prefix-caching`|Optional|Enable|Optional|Reuses KV cache for shared prefixes (e.g., system prompts). Improves throughput when cache hit rate is high but may reduce available KV cache memory.|
 |`num_speculative_tokens`|3|3|3|MTP speculation count. Higher values improve decode throughput at the cost of memory for draft model KV cache. Use `1` on prefill nodes in PD mode.|
-|`VLLM_ASCEND_ENABLE_MLAPO`|1 (w8a8)|1 (w8a8)|0 or 1|Enables MLA fusion on w8a8 models. Improves decode performance but consumes more NPU memory. Disable for long-context if memory is insufficient.|
+|`additional_config.enable_mlapo`|1 (w8a8)|1 (w8a8)|0 or 1|Enables MLA fusion on w8a8 models. Improves decode performance but consumes more NPU memory. Disable for long-context if memory is insufficient.|
 
 ### 9.2 Tuning Guidelines
 
@@ -1381,7 +1365,7 @@ For environment variable descriptions and constraints, refer to [envs.py](https:
 
 ## 10 FAQ
 
-- Common Issues Tip: If you encounter issues, Refer to [FAQs](../../faqs.md).
+- Common Issues Tip: If you encounter issues, Refer to [Public FAQs](../../faqs.md).
 
 - **Q: How to solve ValueError: Tokenizer class TokenizersBackend does not exist or is not currently imported?**
 
