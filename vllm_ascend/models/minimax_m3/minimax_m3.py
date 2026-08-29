@@ -54,7 +54,7 @@ from vllm.model_executor.layers.linear import (
 )
 from vllm.model_executor.layers.logits_processor import LogitsProcessor
 from vllm.model_executor.layers.quantization import QuantizationConfig
-from vllm.model_executor.layers.rotary_embedding import get_rope
+from vllm.model_executor.layers.rotary_embedding import get_rope as _get_vllm_rope
 from vllm.model_executor.layers.vocab_parallel_embedding import (
     ParallelLMHead,
     VocabParallelEmbedding,
@@ -464,7 +464,42 @@ def _get_rope_parameters(config: PretrainedConfig) -> dict[str, Any] | None:
             "rope_theta": getattr(config, "rope_theta", 10000),
             "partial_rotary_factor": getattr(config, "partial_rotary_factor", 1.0),
         }
+
+    rope_scaling = getattr(config, "rope_scaling", None)
+    if rope_scaling:
+        rope_parameters.update(rope_scaling)
+        if "rope_type" not in rope_parameters and "type" in rope_scaling:
+            rope_parameters["rope_type"] = rope_scaling["type"]
+        rope_parameters.setdefault(
+            "original_max_position_embeddings",
+            getattr(config, "max_position_embeddings", 8192),
+        )
     return rope_parameters
+
+
+def get_rope(
+    head_size: int,
+    max_position: int,
+    rope_parameters: dict[str, Any] | None = None,
+) -> nn.Module:
+    """Build MiniMax M3's partial NeoX RoPE with optional long-context scaling.
+
+    MiniMax M3 stores RoPE scaling separately from its base RoPE parameters.
+    Keep the configuration local to this model and size the cache for the
+    scaled context, so both dense and sparse attention use identical RoPE.
+    """
+    rope_parameters = dict(rope_parameters or {})
+    scaling_factor = float(rope_parameters.get("factor", 1.0))
+    original_max_position = int(
+        rope_parameters.get("original_max_position_embeddings", max_position)
+    )
+    max_position = max(max_position, int(original_max_position * scaling_factor))
+
+    return _get_vllm_rope(
+        head_size,
+        max_position=max_position,
+        rope_parameters=rope_parameters,
+    )
 
 
 def _is_w8a8_mxfp8_linear(layer: nn.Module) -> bool:
