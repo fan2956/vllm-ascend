@@ -22,6 +22,8 @@ This document provides instructions for contributors to the vLLM Ascend project.
     - [vLLM Ascend Plugin Architecture](#vllm-ascend-plugin-architecture)
     - [Patching Requirement](#patching-requirement)
     - [Model Runner Changes](#model-runner-changes)
+- [AI-Assisted Contribution Attribution](#ai-assisted-contribution-attribution)
+    - [AI Contribution Modes](#ai-contribution-modes)
 - [Commit Messages and Pull Requests](#commit-messages-and-pull-requests)
     - [Commit Message Format](#commit-message-format)
 - [Review Checklist](#review-checklist)
@@ -265,6 +267,38 @@ Reviewers must verify:
 - `vllm_ascend/worker/model_runner_v1.py` - vLLM v1 model runner
 - `vllm_ascend/worker/v2/model_runner.py` - vLLM v2 model runner
 - `vllm_ascend/_310p/model_runner_310p.py` - Ascend 310P model runner
+
+---
+
+## AI-Assisted Contribution Attribution
+
+vLLM Ascend tracks AI-assisted and agent-driven contributions to understand
+how coding agents are used in the project. This disclosure records the
+development process; it does not change contributor responsibility for the
+submitted code.
+
+### AI Contribution Modes
+
+Every pull request SHOULD declare exactly one `AI-Mode` in the PR template:
+
+- `none`: No AI-assisted coding was used.
+- `autocomplete`: AI was used only for inline code completion.
+- `assisted`: Development was human-led, with AI used for code generation,
+  editing, debugging, or analysis.
+- `agent`: A coding agent autonomously performed a substantial part of the
+  task, such as multi-file changes, testing, debugging, or iterative
+  implementation.
+
+Use `AI-Tools` to list the tools used as a comma-separated list, or `none`.
+Use `AI-Attribution: git-ai` when Git AI line-level attribution is available;
+use `not-applicable` for `AI-Mode: none`; otherwise use `unavailable`. An
+`unknown` attribution state means that line provenance was not observed or
+cannot be determined. It is not evidence of human authorship and MUST NOT be
+treated as `none` or as human-written code.
+
+This convention does not replace or modify the Developer Certificate of Origin
+(DCO). Contributors remain responsible for their changes, and all commits MUST
+continue to be signed off with `git commit -s`.
 
 ---
 
