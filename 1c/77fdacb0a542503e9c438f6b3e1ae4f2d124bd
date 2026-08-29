@@ -1,0 +1,18 @@
+.github/PULL_REQUEST_TEMPLATE.md
+  h_d548bf1d5c5951 28-41
+.github/workflows/preserve_git_ai_attribution.yaml
+  h_d548bf1d5c5951 1-40
+AGENTS.md
+  h_d548bf1d5c5951 25-26,273-304
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1c77fdacb0a542503e9c438f6b3e1ae4f2d124bd",
+  "prompts": {},
+  "humans": {
+    "h_d548bf1d5c5951": {
+      "author": "fan2956 <zhoufan53@huawei.com>"
+    }
+  }
+}
