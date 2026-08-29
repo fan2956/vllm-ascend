@@ -17,7 +17,7 @@ from vllm_ascend.models.minimax_m3 import (
     _get_rope_parameters,
     _sparse_attention_layer_ids,
 )
-from vllm_ascend.models.minimax_m3.minimax_m3 import MiniMaxM3SwiGLUOAI
+from vllm_ascend.models.minimax_m3.minimax_m3 import MiniMaxM3SwiGLUOAI, get_rope
 
 
 class _FakeQKVProj(nn.Module):
@@ -198,6 +198,49 @@ class TestMiniMaxM3Modeling(unittest.TestCase):
         rope_parameters["partial_rotary_factor"] = 1.0
 
         self.assertEqual(config.rope_parameters["partial_rotary_factor"], 0.5)
+
+    def test_minimax_m3_rope_applies_scaling_without_mutating_config(self) -> None:
+        config = PretrainedConfig(
+            max_position_embeddings=524288,
+            rope_parameters={
+                "rope_theta": 1000000,
+                "partial_rotary_factor": 0.5,
+            },
+            rope_scaling={"type": "yarn", "factor": 2.0},
+        )
+
+        rope_parameters = _get_rope_parameters(config)
+        assert rope_parameters is not None
+
+        with patch(
+            "vllm_ascend.models.minimax_m3.minimax_m3._get_vllm_rope",
+            return_value=nn.Identity(),
+        ) as build_rope:
+            get_rope(
+                head_size=128,
+                max_position=config.max_position_embeddings,
+                rope_parameters=rope_parameters,
+            )
+
+        build_rope.assert_called_once_with(
+            128,
+            max_position=1048576,
+            rope_parameters={
+                "rope_theta": 1000000,
+                "partial_rotary_factor": 0.5,
+                "type": "yarn",
+                "factor": 2.0,
+                "rope_type": "yarn",
+                "original_max_position_embeddings": 524288,
+            },
+        )
+        self.assertEqual(
+            config.rope_parameters,
+            {
+                "rope_theta": 1000000,
+                "partial_rotary_factor": 0.5,
+            },
+        )
 
 
 if __name__ == "__main__":
