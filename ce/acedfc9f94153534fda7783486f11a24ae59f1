@@ -1,0 +1,25 @@
+tests/ut/models/minimax_m3/test_minimax_m3.py
+  s_d3d1228379d77d::t_022355192dfa76 221-227
+  s_d3d1228379d77d::t_15379870f7f684 20,186-220
+  s_d3d1228379d77d::t_2df4f6363f2184 228
+vllm_ascend/models/minimax_m3/minimax_m3.py
+  s_d3d1228379d77d::t_15379870f7f684 57,467-476,480-483,485-502
+  s_d3d1228379d77d::t_022355192dfa76 484
+  s_d3d1228379d77d::t_0ddeae269f7b66 503-504
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "ceacedfc9f94153534fda7783486f11a24ae59f1",
+  "prompts": {},
+  "sessions": {
+    "s_d3d1228379d77d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04cbf-2b8b-7351-b4a2-b49f94ff2dcc",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "fan2956 <zhoufan53@huawei.com>"
+    }
+  }
+}
